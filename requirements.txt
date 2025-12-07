@@ -1,0 +1,5 @@
+Flask
+SpeechRecognition
+pyaudio
+numpy
+python-dotenv
