@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Stress Monitor UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      :root {
+        --bg: #020617;
+        --bg-elevated: #020617;
+        --accent: #22c55e;
+        --accent-soft: rgba(34, 197, 94, 0.15);
+        --danger: #f97373;
+        --text: #e5e7eb;
+        --muted: #6b7280;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(
+          circle at top,
+          #0f172a 0,
+          #020617 55%,
+          #000 100%
+        );
+        color: var(--text);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 480px;
+        padding: 2rem 2.25rem;
+        border-radius: 1.5rem;
+        background: linear-gradient(
+          145deg,
+          rgba(15, 23, 42, 0.95),
+          rgba(15, 23, 42, 0.98)
+        );
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8),
+          0 0 0 1px rgba(148, 163, 184, 0.12);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        backdrop-filter: blur(18px);
+      }
+
+      .header {
+        margin-bottom: 1.5rem;
+      }
+
+      .title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .subtitle {
+        font-size: 0.9rem;
+        color: var(--muted);
+        margin-top: 0.25rem;
+      }
+
+      .mic-wrapper {
+        display: flex;
+        justify-content: center;
+        margin: 1.5rem 0 1.75rem;
+      }
+
+      .mic-button {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 999px;
+        border: 2px solid rgba(34, 197, 94, 0.6);
+        background: radial-gradient(
+          circle at 30% 20%,
+          #22c55e 0,
+          #16a34a 20%,
+          #0f172a 70%
+        );
+        box-shadow: 0 0 25px rgba(34, 197, 94, 0.35),
+          0 0 0 8px rgba(34, 197, 94, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease,
+          border-color 0.18s ease, filter 0.18s ease;
+      }
+
+      .mic-button:active {
+        transform: scale(0.95);
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.4),
+          0 0 0 4px rgba(34, 197, 94, 0.18);
+        filter: brightness(0.95);
+      }
+
+      .mic-icon {
+        font-size: 2.7rem;
+        filter: drop-shadow(0 0 8px rgba(15, 23, 42, 0.8));
+      }
+
+      .mic-label {
+        text-align: center;
+        margin-top: 0.6rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .status-block {
+        margin-bottom: 1.75rem;
+      }
+
+      .status-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+      }
+
+      .status-box {
+        padding: 0.85rem 1rem;
+        border-radius: 0.9rem;
+        background: radial-gradient(
+          circle at top left,
+          rgba(34, 197, 94, 0.12),
+          rgba(15, 23, 42, 0.95)
+        );
+        border: 1px solid rgba(34, 197, 94, 0.4);
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+          Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .status-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .status-pill {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        border: 1px solid rgba(34, 197, 94, 0.7);
+        color: var(--accent);
+        background: rgba(34, 197, 94, 0.13);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .status-pill--error {
+        border-color: rgba(248, 113, 113, 0.8);
+        color: #fecaca;
+        background: rgba(248, 113, 113, 0.16);
+      }
+
+      .breathing-mode {
+        display: none;
+        padding: 1rem 1rem 1.2rem;
+        border-radius: 1rem;
+        background: radial-gradient(
+          circle at top,
+          rgba(248, 113, 113, 0.12),
+          rgba(30, 64, 175, 0.9)
+        );
+        border: 1px solid rgba(248, 113, 113, 0.65);
+        box-shadow: 0 0 25px rgba(248, 113, 113, 0.35);
+        animation: appear 0.25s ease-out;
+      }
+
+      .breathing-mode.active {
+        display: block;
+      }
+
+      .breathing-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .breathing-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: var(--danger);
+        box-shadow: 0 0 12px rgba(248, 113, 113, 0.9);
+      }
+
+      .breathing-subtitle {
+        font-size: 0.8rem;
+        color: #e5e7eb;
+        opacity: 0.9;
+        margin-bottom: 0.6rem;
+      }
+
+      .breathing-steps {
+        font-size: 0.8rem;
+        color: #e5e7eb;
+        line-height: 1.5;
+        list-style: decimal;
+        padding-left: 1.2rem;
+      }
+
+      .footer-note {
+        margin-top: 1rem;
+        font-size: 0.7rem;
+        color: var(--muted);
+        text-align: right;
+        opacity: 0.85;
+      }
+
+      @keyframes appear {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <header class="header">
+        <div class="title">Cognitive Load Monitor</div>
+        <div class="subtitle">
+          Tap the microphone and breathe toward your device to analyze stress
+          levels.
+        </div>
+      </header>
+
+      <div class="mic-wrapper">
+        <button id="micButton" class="mic-button" type="button">
+          <span class="mic-icon">🎙️</span>
+        </button>
+      </div>
+      <div class="mic-label">Tap to sample breathing</div>
+
+      <section class="status-block">
+        <div class="status-label">Status</div>
+        <div class="status-box">
+          <span id="statusText" class="status-text">System nominal.</span>
+          <span id="statusPill" class="status-pill">idle</span>
+        </div>
+      </section>
+
+      <section id="breathingMode" class="breathing-mode">
+        <div class="breathing-title">
+          <span class="breathing-dot"></span>
+          Breathing Mode Engaged
+        </div>
+        <div class="breathing-subtitle">
+          Stress levels elevated. Follow this guided cycle for 30–60 seconds:
+        </div>
+        <ol class="breathing-steps">
+          <li>Inhale gently through your nose for 4 seconds.</li>
+          <li>Hold your breath for 4 seconds.</li>
+          <li>Exhale slowly through your mouth for 6 seconds.</li>
+        </ol>
+      </section>
+
+      <div class="footer-note">Data provided by local Flask backend.</div>
+    </div>
+
+    <script>
+      const statusText = document.getElementById("statusText");
+      const statusPill = document.getElementById("statusPill");
+      const breathingMode = document.getElementById("breathingMode");
+      const micButton = document.getElementById("micButton");
+
+      /**
+       * Helper to update the status line.
+       */
+      function setStatus(message, mode = "idle") {
+        statusText.textContent = message;
+
+        // reset pill styles
+        statusPill.classList.remove("status-pill--error");
+        statusPill.textContent = mode;
+
+        if (mode === "error") {
+          statusPill.classList.add("status-pill--error");
+        }
+      }
+
+      /**
+       * Show/hide the Breathing Mode panel based on stress level.
+       * Expected stress values from Flask: "low" | "medium" | "high"
+       */
+      function updateBreathingMode(stress) {
+        if (stress === "high") {
+          breathingMode.classList.add("active");
+        } else {
+          breathingMode.classList.remove("active");
+        }
+      }
+
+      /**
+       * Click handler for the microphone button.
+       * This calls your Flask route (example: /detect_exhale)
+       * and expects JSON like:
+       * {
+       *   "status": "Cognitive Overload Detected",
+       *   "stress": "high"
+       * }
+       */
+      micButton.addEventListener("click", async () => {
+        setStatus("Listening for exhale…", "listening");
+        updateBreathingMode("low");
+
+        try {
+          const response = await fetch("/start_breathing_monitor", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ duration: 5 }), // optional
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          // Backend should send something like:
+          // status: string, stress: "low" | "medium" | "high"
+          const statusMsg = data.status || "Status unknown.";
+          const stress = data.stress || "low";
+
+          setStatus(statusMsg, stress);
+          updateBreathingMode(stress);
+
+          if (stress === "high") {
+  await fetch("/start_breathing_exercise", { method: "POST" });
+}
+
+        } catch (err) {
+          console.error(err);
+          setStatus("Backend error: " + err.message, "error");
+          updateBreathingMode("low");
+        }
+      });
+    </script>
+  </body>
+</html>

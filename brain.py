@@ -1,28 +1,34 @@
-def analyze_stress(text_input):
-    """
-    Analyzes the given text input for stress indicators.
-    
-    Parameters:
-    text_input (str): The text to be analyzed.
-    
-    Returns:
-    dict: A dictionary containing stress analysis results.
-    """
-    stress_indicators = ['anxious', 'stressed', 'overwhelmed', 'nervous', 'tense']
-    analysis_result = {
-        'stress_level': 0,
-        'indicators_found': []
-    }
-    
-    words = text_input.lower().split()
-    for word in words:
-        if word in stress_indicators:
-            analysis_result['stress_level'] += 1
-            analysis_result['indicators_found'].append(word)
-    
-    return analysis_result
+def analyze_stress(data):
+    text = data.get('text', '').lower()
+    rms = data.get('rms', 0)
 
-if __name__ == "__main__":
-    sample_text = "I have been feeling very anxious and overwhelmed lately."
-    result = analyze_stress(sample_text)
-    print("Stress Analysis Result:", result)
+    # CRITICAL FIX: Calibrated to your logs (Your heavy breathing is ~130)
+    LOUDNESS_THRESHOLD = 80
+    
+    # Words that trigger stress even if you are whispering
+    STRESS_KEYWORDS = [
+        'anxious', 'stressed', 'overwhelmed', 'nervous', 'scared', 
+        'help', 'panic', 'tension', 'trouble', 'worry'
+    ]
+
+    analysis_result = {
+        'stress': 'low',
+        'status': 'System Nominal',
+        'transcription': text if text else "..."
+    }
+
+    print(f"Analyzing -> Vol: {rms} | Text: {text}")
+
+    # 1. Check Volume (Breathing)
+    if rms > LOUDNESS_THRESHOLD:
+        analysis_result['stress'] = 'high'
+        analysis_result['status'] = f'Heavy Breathing Detected (Vol: {rms})'
+
+    # 2. Check Words (Overrides volume)
+    for word in STRESS_KEYWORDS:
+        if word in text:
+            analysis_result['stress'] = 'high'
+            analysis_result['status'] = f'Distress Signal: "{word}"'
+            break
+            
+    return analysis_result
