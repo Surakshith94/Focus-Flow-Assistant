@@ -2,8 +2,13 @@ from flask import Flask, render_template, jsonify, request
 from breathing_monitor import detect_exhale
 from audio_engine import listen_and_analyze
 from brain import analyze_stress
+from tts_engine import speak_text # Import the new TTS function
+import time
 
 app = Flask(__name__)
+
+# Global state to track grounding (0 = off)
+grounding_stage = 0
 
 @app.route("/")
 def index():
@@ -11,13 +16,84 @@ def index():
 
 @app.route("/start_breathing_monitor", methods=["POST"])
 def start_breathing_monitor():
-    # 1. Listen (Gets both Text and RMS volume)
-    audio_data = listen_and_analyze()
+    global grounding_stage
+    grounding_stage = 0 # Reset on new regular check
 
-    # 2. Analyze (Checks both)
+    audio_data = listen_and_analyze()
     result = analyze_stress(audio_data)
 
+    # CHECK FOR PANIC TRIGGER
+    # If brain.py says "panic" (we will update brain.py next), start grounding.
+    if result.get("status") == "PANIC_ATTACK":
+        grounding_stage = 1
+        return jsonify({
+            "status": "PANIC_ATTACK",
+            "stress": "critical",
+            "action": "start_grounding" # Triggers frontend to switch modes
+        })
+
     return jsonify(result)
+
+@app.route("/perform_grounding_step", methods=["POST"])
+def perform_grounding_step():
+    """
+    Handles the 5-4-3-2-1 technique logic loop.
+    """
+    global grounding_stage
+    data = request.json
+    client_stage = data.get('stage', 1)
+    
+    # Update global stage (safety sync)
+    grounding_stage = client_stage
+
+    prompts = {
+        1: "I sense high anxiety. Let's ground ourselves. Name 5 things you can see around you.",
+        2: "Great job. Now, tell me 4 things you can touch.",
+        3: "You are doing well. Name 3 things you can hear.",
+        4: "Almost there. Name 2 things you can smell.",
+        5: "Last one. Name 1 thing you can taste or 1 good thing about yourself."
+    }
+
+    if grounding_stage > 5:
+        speak_text("You did great. Returning to normal monitoring.")
+        return jsonify({"completed": True, "message": "Exercise Complete"})
+
+    # 1. SPEAK THE INSTRUCTION
+    current_prompt = prompts.get(grounding_stage, "")
+    print(f"Server Speaking: {current_prompt}")
+    speak_text(current_prompt)
+    
+    # Wait a moment for TTS to start/finish before listening
+    # (Adjust this sleep based on prompt length if needed, or rely on UI delay)
+    time.sleep(4) 
+
+    # 2. LISTEN FOR USER RESPONSE
+    # We use a longer timeout here because users need time to think/look around
+    audio_data = listen_and_analyze() 
+    user_text = audio_data.get("text", "")
+
+    # 3. VERIFY RESPONSE (Simple Word Count)
+    # We split by spaces to approximate the "count" of items
+    word_count = len(user_text.split()) if user_text else 0
+    
+    print(f"Stage {grounding_stage} | User said: {user_text} | Count: {word_count}")
+
+    # Logic: Did they say enough? (We are lenient, just checking if they spoke something)
+    if word_count > 0:
+        feedback = "Good."
+        next_stage = grounding_stage + 1
+    else:
+        feedback = "I didn't hear you. Let's try again."
+        next_stage = grounding_stage # Repeat same stage
+        speak_text("I didn't catch that. Please try again.")
+
+    return jsonify({
+        "completed": False,
+        "current_stage": grounding_stage,
+        "next_stage": next_stage,
+        "user_said": user_text,
+        "feedback": feedback
+    })
 
 @app.route("/start_breathing_exercise", methods=["POST"])
 def start_breathing_exercise():
