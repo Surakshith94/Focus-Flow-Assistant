@@ -4,6 +4,7 @@ from audio_engine import listen_and_analyze
 from brain import analyze_stress
 from tts_engine import speak_text # Import the new TTS function
 import time
+import db_manager
 
 app = Flask(__name__)
 
@@ -22,16 +23,30 @@ def start_breathing_monitor():
     audio_data = listen_and_analyze()
     result = analyze_stress(audio_data)
 
+    intensity_score = 2
+    emotion_label = "Calm"
     # CHECK FOR PANIC TRIGGER
     # If brain.py says "panic" (we will update brain.py next), start grounding.
+    if result.get("stress") == "high":
+        intensity_score = 8
+        emotion_label = "High Stress"
+    elif result.get("stress") == "critical":
+        intensity_score = 10
+        emotion_label = "Panic"
+    elif result.get("stress") == "low":
+        intensity_score = 2
+        emotion_label = "Calm"
+
+    db_manager.log_stress(emotion_label, intensity_score)
+
     if result.get("status") == "PANIC_ATTACK":
         grounding_stage = 1
         return jsonify({
             "status": "PANIC_ATTACK",
             "stress": "critical",
-            "action": "start_grounding" # Triggers frontend to switch modes
+            "action": "start_grounding"
         })
-
+    
     return jsonify(result)
 
 @app.route("/perform_grounding_step", methods=["POST"])
@@ -99,6 +114,18 @@ def perform_grounding_step():
 def start_breathing_exercise():
     detect_exhale(duration=10)
     return jsonify({"status": "Breathing exercise completed"})
+
+@app.route("/get_history", methods=["GET"])
+def get_history():
+    """API for Chart.js"""
+    data = db_manager.get_recent_history()
+    # Format: {"labels": ["10:00", "10:05"], "values": [2, 8]}
+    response = {
+        "labels": [row[0] for row in data],
+        "values": [row[1] for row in data]
+    }
+    return jsonify(response)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
