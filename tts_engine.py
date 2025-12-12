@@ -1,27 +1,64 @@
-import pyttsx3
-import threading
+from gtts import gTTS
+import pygame
+import os
+import time
+import uuid
+
+# Initialize Pygame Mixer
+try:
+    pygame.mixer.init()
+except pygame.error:
+    print("Warning: No audio device found.")
 
 def speak_text(text):
     """
-    Uses pyttsx3 to speak the text. 
-    We run this in a separate thread so it doesn't freeze the Flask app.
+    Online Text-to-Speech using Google Translate API (gTTS).
+    1. Sends text to Google.
+    2. Downloads MP3.
+    3. Plays it.
     """
-    def _run():
-        try:
-            engine = pyttsx3.init()
-            # Optional: Adjust rate (speed) and volume
-            engine.setProperty('rate', 150) 
-            engine.setProperty('volume', 0.9)
-            
-            # Select a voice (0 is usually male, 1 is usually female)
-            voices = engine.getProperty('voices')
-            engine.setProperty('voice', voices[1].id) # Try changing index to 0 for male
-            
-            engine.say(text)
-            engine.runAndWait()
-        except Exception as e:
-            print(f"TTS Error: {e}")
+    if not text:
+        return
 
-    # Run in thread so the UI doesn't hang while waiting for the voice to finish
-    thread = threading.Thread(target=_run)
-    thread.start()
+    print(f"🤖 Flow Says: {text}")
+    
+    # Unique filename to prevent locking errors
+    filename = f"google_voice_{uuid.uuid4().hex}.mp3"
+
+    try:
+        # 1. Generate (Connects to Google)
+        # tld='com' = US English. Try tld='co.uk' or tld='co.in' for different accents.
+        tts = gTTS(text=text, lang='en', tld='co.in', slow=False) 
+        tts.save(filename)
+        
+        # 2. Play
+        if os.path.exists(filename):
+            pygame.mixer.music.load(filename)
+            pygame.mixer.music.play()
+            
+            # Block until finished
+            while pygame.mixer.music.get_busy():
+                pygame.time.Clock().tick(10)
+            
+            # Unload
+            pygame.mixer.music.unload()
+            
+            # 3. Cleanup
+            time.sleep(0.1)
+            try:
+                os.remove(filename)
+            except:
+                pass
+
+    except Exception as e:
+        print(f"TTS Error: {e}")
+        # Clean up if it failed
+        if os.path.exists(filename):
+            try:
+                os.remove(filename)
+            except:
+                pass
+
+if __name__ == "__main__":
+    print("Testing Google Voice...")
+    speak_text("Hello boss. I am connected to Google servers and ready to help.")

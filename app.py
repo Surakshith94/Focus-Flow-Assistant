@@ -1,7 +1,7 @@
 from flask import Flask, render_template, jsonify, request
 from breathing_monitor import detect_exhale
 from audio_engine import listen_and_analyze
-from brain import analyze_stress
+from brain import ask_brain
 from tts_engine import speak_text # Import the new TTS function
 import time
 import db_manager
@@ -108,6 +108,36 @@ def perform_grounding_step():
         "next_stage": next_stage,
         "user_said": user_text,
         "feedback": feedback
+    })
+
+@app.route("/conversation_turn", methods=["POST"])
+def conversation_turn():
+    """
+    1. Listen to User (Mic)
+    2. Send text to Brain (AI)
+    3. Speak response (TTS)
+    """
+    # 1. LISTEN
+    print("--- [Conversation Turn] Listening... ---")
+    data = listen_and_analyze() # Uses your existing audio engine
+    user_text = data.get("text", "")
+    
+    if not user_text:
+        return jsonify({"status": "silence", "reply": ""})
+
+    # 2. THINK (AI)
+    print(f"--- [User Said] {user_text} ---")
+    ai_reply = ask_brain(user_text)
+
+    # 3. SPEAK (TTS)
+    # The speak_text function blocks until audio finishes, 
+    # so we don't start listening again too early.
+    speak_text(ai_reply)
+
+    return jsonify({
+        "status": "success", 
+        "user_text": user_text, 
+        "reply": ai_reply
     })
 
 @app.route("/start_breathing_exercise", methods=["POST"])

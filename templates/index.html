@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Stress Monitor UI</title>
+    <title>Focus-Flow Interface</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,9 +14,7 @@
         --danger: #f97373;
         --text: #e5e7eb;
         --muted: #6b7280;
-
-        /* New Safe Colors */
-        --safe-bg: #1e3a8a; /* Calming Blue */
+        --safe-bg: #1e3a8a;
         --safe-card: rgba(30, 58, 138, 0.9);
       }
 
@@ -34,7 +32,6 @@
         padding: 1rem;
       }
 
-      /* CRITICAL MODE: Changes background to calming blue */
       body.critical-theme {
         background: radial-gradient(circle at center, #3b82f6 0%, #1e3a8a 100%);
       }
@@ -51,11 +48,12 @@
         transition: all 0.5s ease;
       }
 
-      .header { margin-bottom: 1.5rem; }
+      .header { margin-bottom: 1.5rem; text-align: center; }
       .title { font-size: 1.4rem; font-weight: 600; text-transform: uppercase; color: var(--muted); }
       .subtitle { font-size: 0.95rem; color: var(--muted); margin-top: 0.25rem; }
 
-      .mic-wrapper { display: flex; justify-content: center; margin: 1.5rem 0 1.75rem; }
+      /* MIC BUTTON */
+      .mic-wrapper { display: flex; justify-content: center; margin: 1.5rem 0 1rem; }
       .mic-button {
         width: 120px; height: 120px; border-radius: 999px;
         border: 2px solid rgba(34, 197, 94, 0.6);
@@ -65,8 +63,26 @@
         transition: all 0.18s ease; color: #041018; font-size: 2.2rem;
       }
       .mic-button:active { transform: scale(0.96); }
-      .mic-label { text-align: center; margin-top: 0.6rem; font-size: 0.85rem; color: var(--muted); text-transform: uppercase; }
+      .mic-label { text-align: center; font-size: 0.85rem; color: var(--muted); text-transform: uppercase; margin-bottom: 1.5rem; }
 
+      /* CHAT BUTTON */
+      .chat-wrapper { text-align: center; margin-bottom: 1.5rem; }
+      .chat-btn {
+        background: transparent;
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        padding: 0.6rem 1.2rem;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .chat-btn:hover { background: rgba(34, 197, 94, 0.1); }
+      .chat-btn.active { border-color: var(--danger); color: var(--danger); background: rgba(249, 115, 115, 0.1); }
+
+      /* STATUS BOX */
       .status-block { margin-bottom: 1.75rem; }
       .status-label { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
       .status-box {
@@ -83,7 +99,7 @@
       }
       .status-pill--error { border-color: rgba(248, 113, 113, 0.8); color: #fecaca; background: rgba(248, 113, 113, 0.12); }
 
-      /* BREATHING MODE (Standard Stress) */
+      /* BREATHING MODE */
       .breathing-mode {
         display: none; padding: 1rem; border-radius: 1rem;
         background: radial-gradient(circle at top, rgba(248, 113, 113, 0.06), rgba(30, 64, 175, 0.04));
@@ -96,84 +112,56 @@
       .breathing-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--danger); box-shadow: 0 0 8px rgba(248, 113, 113, 0.9); }
       .breathing-steps { font-size: 0.9rem; padding-left: 1.2rem; line-height: 1.6; opacity: 0.95; color: var(--text); }
 
-      /* CRITICAL ALERT PANEL */
-      .critical-panel {
-        display: none;
-        text-align: center;
-        padding: 1rem 0;
-        animation: appear 0.4s ease-out;
-      }
-      .critical-message {
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: #fff;
-        margin-bottom: 1.25rem;
-        line-height: 1.4;
-      }
-      .action-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-      }
-      .btn-help {
-        display: block;
-        width: 100%;
-        padding: 0.8rem;
-        border-radius: 0.6rem;
-        text-decoration: none;
-        font-weight: 600;
-        text-align: center;
-        transition: transform 0.12s;
-      }
-      .btn-helpline { background: #fff; color: #1e3a8a; }
-      .btn-whatsapp { background: #25D366; color: #fff; }
-      .btn-help:active { transform: scale(0.98); }
-
-      /* CHART CONTAINER */
+      /* CHART */
       .chart-container {
-        margin-top: 2rem;
+        margin-top: 1rem;
         padding: 1rem;
         background: rgba(0, 0, 0, 0.3);
         border-radius: 1rem;
         border: 1px solid rgba(148, 163, 184, 0.1);
       }
 
+      /* CRITICAL PANEL */
+      .critical-panel { display: none; text-align: center; padding: 1rem 0; animation: appear 0.4s ease-out; }
+      .critical-message { font-size: 1.05rem; font-weight: 600; color: #fff; margin-bottom: 1.25rem; line-height: 1.4; }
+      .action-buttons { display: flex; flex-direction: column; gap: 0.75rem; }
+      .btn-help { display: block; width: 100%; padding: 0.8rem; border-radius: 0.6rem; text-decoration: none; font-weight: 600; text-align: center; transition: transform 0.12s; }
+      .btn-helpline { background: #fff; color: #1e3a8a; }
+      .btn-whatsapp { background: #25D366; color: #fff; }
+
       /* GROUNDING INTERFACE */
       .grounding {
-        display: none;
-        text-align: center;
-        padding: 1rem;
-        border-radius: 0.9rem;
-        margin-top: 1rem;
+        display: none; text-align: center; padding: 1rem; border-radius: 0.9rem; margin-top: 1rem;
         background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
         border: 1px solid rgba(255,255,255,0.02);
       }
       .grounding.active { display: block; }
 
-      /* Utilities */
       .hidden { display: none !important; }
       @keyframes appear { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
       .footer-note { margin-top: 1rem; font-size: 0.75rem; color: var(--muted); text-align: right; opacity: 0.9; }
     </style>
   </head>
   <body>
-    <div class="card" id="mainCard" role="region" aria-label="Stress monitor">
+    <div class="card" id="mainCard">
       <header class="header">
-        <div class="title">Cognitive Load Monitor</div>
-        <div class="subtitle" id="subtitle">
-          Tap the microphone to analyze stress levels.
-        </div>
+        <div class="title">Focus-Flow</div>
+        <div class="subtitle" id="subtitle">AI Mental Health Companion</div>
       </header>
 
       <div id="standardInterface">
         <div class="mic-wrapper">
-          <button id="micButton" class="mic-button" type="button" aria-pressed="false" aria-label="Start sampling">
-            <span class="mic-icon" aria-hidden="true">🎙️</span>
+          <button id="micButton" class="mic-button" type="button" aria-label="Start sampling">
+            <span class="mic-icon">🎙️</span>
           </button>
         </div>
-        <div class="mic-label">Tap to sample</div>
+        <div class="mic-label">Tap to Monitor Stress</div>
 
-        <section class="status-block" aria-live="polite">
+        <div class="chat-wrapper">
+          <button id="chatModeBtn" class="chat-btn">💬 Start Voice Chat</button>
+        </div>
+
+        <section class="status-block">
           <div class="status-label">Status</div>
           <div class="status-box">
             <span id="statusText" class="status-text">System nominal.</span>
@@ -181,9 +169,9 @@
           </div>
         </section>
 
-        <section id="breathingMode" class="breathing-mode" aria-hidden="true">
+        <section id="breathingMode" class="breathing-mode">
           <div class="breathing-title">
-            <span class="breathing-dot" aria-hidden="true"></span> Breathing Mode Engaged
+            <span class="breathing-dot"></span> Breathing Mode Engaged
           </div>
           <ol class="breathing-steps">
             <li>Inhale (4s)</li>
@@ -193,21 +181,21 @@
         </section>
 
         <div class="chart-container">
-            <canvas id="stressChart"></canvas>
+          <canvas id="stressChart"></canvas>
         </div>
       </div>
 
-      <div id="criticalPanel" class="critical-panel" aria-hidden="true">
+      <div id="criticalPanel" class="critical-panel">
         <div class="critical-message">
           You are going through a hard time. <br /> Please connect with someone.
         </div>
         <div class="action-buttons">
-          <a href="tel:14416" class="btn-help btn-helpline" role="button">📞 Call National Helpline (14416)</a>
-          <a href="https://wa.me/911234567890" class="btn-help btn-whatsapp" role="button">💬 WhatsApp Support</a>
+          <a href="tel:14416" class="btn-help btn-helpline">📞 Call National Helpline (14416)</a>
+          <a href="https://wa.me/911234567890" class="btn-help btn-whatsapp">💬 WhatsApp Support</a>
         </div>
       </div>
 
-      <div id="groundingInterface" class="grounding" aria-hidden="true">
+      <div id="groundingInterface" class="grounding">
         <div style="font-size: 3rem; margin-bottom: 1rem;">🧘</div>
         <div class="title">Grounding Technique</div>
         <div id="groundingPrompt" class="subtitle" style="font-size: 1.02rem; color: var(--text); margin: 1rem 0;">
@@ -216,43 +204,57 @@
         <div id="groundingFeedback" style="color: var(--accent); font-size: 0.95rem;"></div>
       </div>
 
-      <div class="footer-note">Data provided by local Flask backend.</div>
+      <div class="footer-note">Powered by Gemini & Flask</div>
     </div>
 
     <script>
-      // 1. DOM ELEMENTS
+      // --- DOM ELEMENTS ---
       const statusText = document.getElementById("statusText");
       const statusPill = document.getElementById("statusPill");
       const breathingMode = document.getElementById("breathingMode");
       const micButton = document.getElementById("micButton");
+      const chatBtn = document.getElementById("chatModeBtn");
+      
       const groundingInterface = document.getElementById("groundingInterface");
       const standardInterface = document.getElementById("standardInterface");
-      const groundingPrompt = document.getElementById("groundingPrompt");
-      const groundingFeedback = document.getElementById("groundingFeedback");
       const criticalPanel = document.getElementById("criticalPanel");
       const subtitle = document.getElementById("subtitle");
+      
+      const groundingPrompt = document.getElementById("groundingPrompt");
+      const groundingFeedback = document.getElementById("groundingFeedback");
 
-      // 2. CHART SETUP
+      // --- HELPER FUNCTIONS ---
+      function setStatus(message, mode = "idle") {
+        statusText.textContent = message;
+        statusPill.classList.remove("status-pill--error");
+        statusPill.textContent = mode;
+        if (mode === "error") statusPill.classList.add("status-pill--error");
+        else if (mode === "active") statusPill.style.borderColor = "#22c55e"; 
+      }
+
+      // --- CHART.JS SETUP ---
       const ctx = document.getElementById('stressChart').getContext('2d');
       const stressChart = new Chart(ctx, {
           type: 'line',
           data: {
               labels: [], 
               datasets: [{
-                  label: 'Stress Intensity',
+                  label: 'Stress',
                   data: [],
                   borderColor: '#22c55e',
                   backgroundColor: 'rgba(34, 197, 94, 0.1)',
                   tension: 0.4,
-                  pointRadius: 4
+                  pointRadius: 3
               }]
           },
           options: {
               scales: {
-                  y: { beginAtZero: true, max: 10, ticks: { color: '#6b7280' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                  x: { ticks: { color: '#6b7280' }, grid: { display: false } }
+                  y: { beginAtZero: true, max: 10, ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                  x: { ticks: { display: false }, grid: { display: false } }
               },
-              plugins: { legend: { display: false } }
+              plugins: { legend: { display: false } },
+              responsive: true,
+              maintainAspectRatio: false
           }
       });
 
@@ -260,163 +262,154 @@
           try {
               const res = await fetch("/get_history");
               const data = await res.json();
-              
               stressChart.data.labels = data.labels;
               stressChart.data.datasets[0].data = data.values;
               
-              // Dynamic Color: Red if stress is high
               const lastValue = data.values[data.values.length - 1];
-              if (lastValue >= 8) {
-                  stressChart.data.datasets[0].borderColor = '#f97373';
-              } else {
-                  stressChart.data.datasets[0].borderColor = '#22c55e';
-              }
-              
+              stressChart.data.datasets[0].borderColor = lastValue >= 8 ? '#f97373' : '#22c55e';
               stressChart.update();
-          } catch (err) {
-              console.error("Chart Error:", err);
-          }
+          } catch (err) { console.error("Chart Error:", err); }
       }
-      
-      // Load chart on startup
-      updateChart();
+      updateChart(); // Load on start
 
-      // 3. UI HELPERS
-      function setStatus(message, mode = "idle") {
-        statusText.textContent = message;
-        statusPill.classList.remove("status-pill--error");
-        statusPill.textContent = mode;
-        if (mode === "error") statusPill.classList.add("status-pill--error");
-      }
-
+      // --- CRITICAL MODE LOGIC ---
       function triggerCriticalMode() {
         document.body.classList.add("critical-theme");
         standardInterface.classList.add("hidden");
-        groundingInterface.classList.remove("active");
-        groundingInterface.style.display = "none";
-        subtitle.classList.add("hidden");
         criticalPanel.style.display = "block";
-        criticalPanel.setAttribute("aria-hidden", "false");
       }
 
-      function resetFromCritical() {
+      function resetUI() {
         document.body.classList.remove("critical-theme");
         criticalPanel.style.display = "none";
-        criticalPanel.setAttribute("aria-hidden", "true");
         standardInterface.classList.remove("hidden");
-        subtitle.classList.remove("hidden");
+        groundingInterface.classList.remove("active");
+        groundingInterface.style.display = "none";
         setStatus("System nominal.", "idle");
       }
 
-      // 4. GROUNDING LOGIC (Recursive)
+      // --- GROUNDING LOGIC (Recursive) ---
       async function runGroundingSequence(stage = 1) {
         standardInterface.classList.add("hidden");
         groundingInterface.classList.add("active");
         groundingInterface.style.display = "block";
-        groundingInterface.setAttribute("aria-hidden", "false");
-
-        groundingPrompt.textContent = `Stage ${stage}: Listen for instructions...`;
-        groundingFeedback.textContent = "Listening...";
+        groundingPrompt.textContent = `Stage ${stage}: Listen...`;
 
         try {
           const response = await fetch("/perform_grounding_step", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+            method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ stage: stage })
           });
-
-          if (!response.ok) throw new Error(`Server ${response.status}`);
           const data = await response.json();
 
           if (data.completed) {
-            groundingPrompt.textContent = "Exercise Complete. Well done.";
-            groundingFeedback.textContent = "";
-            setTimeout(() => {
-              groundingInterface.classList.remove("active");
-              groundingInterface.style.display = "none";
-              standardInterface.classList.remove("hidden");
-              setStatus("System nominal.", "idle");
-              updateChart(); // Update chart after exercise
-            }, 3000);
+            groundingPrompt.textContent = "Well done.";
+            setTimeout(() => { resetUI(); updateChart(); }, 3000);
             return;
           }
 
-          groundingFeedback.textContent = `You listed: "${data.user_said || ''}"`;
-          const nextStage = data.next_stage || (stage + 1);
-          setTimeout(() => runGroundingSequence(nextStage), 2000);
+          groundingFeedback.textContent = `You: "${data.user_said || ''}"`;
+          setTimeout(() => runGroundingSequence(data.next_stage || stage + 1), 2000);
 
         } catch (err) {
-          console.error("Grounding error:", err);
-          groundingPrompt.textContent = "Connection Error.";
-          setTimeout(() => {
-            groundingInterface.classList.remove("active");
-            groundingInterface.style.display = "none";
-            standardInterface.classList.remove("hidden");
-            setStatus("Error contacting server", "error");
-          }, 2000);
+          setStatus("Connection Error", "error");
+          setTimeout(resetUI, 2000);
         }
       }
 
-      // 5. MAIN INTERACTION
-      micButton.addEventListener("click", async () => {
-        const pressed = micButton.getAttribute("aria-pressed") === "true";
-        micButton.setAttribute("aria-pressed", String(!pressed));
+      // --- CHAT MODE LOGIC (The New Feature) ---
+      let isChatting = false;
+
+      async function runConversationLoop() {
+        if (!isChatting) return;
 
         setStatus("Listening...", "listening");
-        breathingMode.classList.remove("active"); 
+        
+        try {
+            const response = await fetch("/conversation_turn", { method: "POST" });
+            const data = await response.json();
+
+            if (data.status === "success") {
+                setStatus("Speaking...", "active");
+                // Optional: Show text in console or add a text box if desired
+                console.log("User:", data.user_text);
+                console.log("AI:", data.reply);
+            } else {
+                setStatus("Waiting...", "idle");
+            }
+
+            if (isChatting) setTimeout(runConversationLoop, 200);
+
+        } catch (err) {
+            console.error("Chat Error:", err);
+            isChatting = false;
+            resetChatBtn();
+        }
+      }
+
+      function resetChatBtn() {
+        chatBtn.textContent = "💬 Start Voice Chat";
+        chatBtn.classList.remove("active");
+        setStatus("System nominal.", "idle");
+      }
+
+      chatBtn.addEventListener("click", () => {
+        if (!isChatting) {
+            // Start Chat
+            isChatting = true;
+            chatBtn.textContent = "🛑 Stop Chat";
+            chatBtn.classList.add("active");
+            runConversationLoop();
+        } else {
+            // Stop Chat
+            isChatting = false;
+            resetChatBtn();
+        }
+      });
+
+      // --- STRESS MONITOR LOGIC ---
+      micButton.addEventListener("click", async () => {
+        if(isChatting) return; // Prevent conflict
+
+        setStatus("Listening...", "listening");
+        breathingMode.classList.remove("active");
         
         try {
           const response = await fetch("/start_breathing_monitor", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+            method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ duration: 5 })
           });
-
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
           const data = await response.json();
-          const stress = data.stress || "low";
-          const statusMsg = data.status || "Status unknown.";
 
-          // A. PANIC MODE -> Grounding
           if (data.action === "start_grounding") {
-            setStatus("Panic Detected. Initiating Grounding...", "error");
-            // Save panic to chart before switching screens
-            updateChart(); 
+            updateChart();
             runGroundingSequence(1);
             return;
           }
 
-          // B. CRITICAL MODE -> Safe Panel
-          if (stress === "critical") {
-            setStatus("Critical stress detected", "error");
+          if (data.stress === "critical") {
             triggerCriticalMode();
             updateChart();
             return;
           }
 
-          // C. STANDARD MODE
-          setStatus(statusMsg, stress);
-          if (stress === "high") {
+          setStatus(data.status || "Analyzed", data.stress);
+          
+          if (data.stress === "high") {
             breathingMode.classList.add("active");
-            try { await fetch("/start_breathing_exercise", { method: "POST" }); } catch (e) {}
-          } else {
-            breathingMode.classList.remove("active");
+            try { await fetch("/start_breathing_exercise", { method: "POST" }); } catch(e){}
           }
           
-          // Refresh chart with new data point
-          setTimeout(updateChart, 500);
+          updateChart();
 
         } catch (err) {
-          console.error("Monitor error:", err);
-          setStatus("Error: " + (err.message || "Unknown"), "error");
+          setStatus("Error", "error");
         }
       });
 
-      // Reset on Escape key
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") resetFromCritical();
-      });
+      // Escape key to reset UI
+      document.addEventListener("keydown", (e) => { if(e.key === "Escape") resetUI(); });
+
     </script>
   </body>
 </html>
